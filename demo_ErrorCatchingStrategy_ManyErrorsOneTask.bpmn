@@ -1,0 +1,279 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_0nqad3a" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="4.9.0">
+  <bpmn:collaboration id="Collaboration_1nw7p3r">
+    <bpmn:participant id="demo_ErrorCatchingStrategy_ManyErrorsOneTask_Scripting" name="demo_ErrorCatchingStrategy_ManyErrorsOneTask_Scripting" processRef="Process_demo_ErrorCatchingStrategy_ManyErrorsOneTask_Scripting" />
+  </bpmn:collaboration>
+  <bpmn:process id="Process_demo_ErrorCatchingStrategy_ManyErrorsOneTask_Scripting" isExecutable="true">
+    <bpmn:scriptTask id="Activity_19cfg8i" name="Throw errors" camunda:asyncBefore="true" scriptFormat="JavaScript">
+      <bpmn:incoming>Flow_1d1qml5</bpmn:incoming>
+      <bpmn:outgoing>Flow_10qabg0</bpmn:outgoing>
+      <bpmn:script>var errorType = execution.getVariable("errorType");
+if (errorType == "errorA" ) {
+ throw new org.camunda.bpm.engine.delegate.BpmnError("errorA");
+}
+if (errorType == "errorB" ) {
+ throw new org.camunda.bpm.engine.delegate.BpmnError("GenericError", "errorB");
+}
+if (errorType == "errorC" ) {
+ throw new org.camunda.bpm.engine.delegate.BpmnError("GenericError", "errorC");
+}else if (errorType == "errorD") {
+ throw new org.camunda.bpm.engine.delegate.BpmnError("GenericError", "errorD");
+}</bpmn:script>
+    </bpmn:scriptTask>
+    <bpmn:userTask id="Activity_0a5lzj3" name="Handle &#34;Error A&#34;">
+      <bpmn:incoming>Flow_1g635ph</bpmn:incoming>
+      <bpmn:outgoing>Flow_0up75e9</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Activity_02b9yl7" name="Choose error flag">
+      <bpmn:extensionElements>
+        <camunda:formData>
+          <camunda:formField id="errorType" label="Error type" type="enum" defaultValue="errorA">
+            <camunda:value id="errorA" name="error A" />
+            <camunda:value id="errorB" name="error B" />
+            <camunda:value id="errorC" name="error C" />
+            <camunda:value id="errorD" name="error D" />
+          </camunda:formField>
+        </camunda:formData>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_02v8rcw</bpmn:incoming>
+      <bpmn:incoming>Flow_0up75e9</bpmn:incoming>
+      <bpmn:outgoing>Flow_1d1qml5</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:startEvent id="StartEvent_1">
+      <bpmn:outgoing>Flow_02v8rcw</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:boundaryEvent id="Event_0nt8kb5" name="Random Problem &#34;Error A&#34;" attachedToRef="Activity_19cfg8i">
+      <bpmn:outgoing>Flow_1g635ph</bpmn:outgoing>
+      <bpmn:errorEventDefinition id="ErrorEventDefinition_1brk9ci" errorRef="Error_0k619mt" />
+    </bpmn:boundaryEvent>
+    <bpmn:sequenceFlow id="Flow_02v8rcw" sourceRef="StartEvent_1" targetRef="Activity_02b9yl7" />
+    <bpmn:sequenceFlow id="Flow_10qabg0" sourceRef="Activity_19cfg8i" targetRef="Event_0yuear1" />
+    <bpmn:sequenceFlow id="Flow_0up75e9" sourceRef="Activity_0a5lzj3" targetRef="Activity_02b9yl7" />
+    <bpmn:sequenceFlow id="Flow_1d1qml5" sourceRef="Activity_02b9yl7" targetRef="Activity_19cfg8i" />
+    <bpmn:sequenceFlow id="Flow_1g635ph" sourceRef="Event_0nt8kb5" targetRef="Activity_0a5lzj3" />
+    <bpmn:subProcess id="Activity_0aegd4k" triggeredByEvent="true">
+      <bpmn:startEvent id="Event_0785qb9" name="Generic Error">
+        <bpmn:outgoing>Flow_14ugbum</bpmn:outgoing>
+        <bpmn:errorEventDefinition id="ErrorEventDefinition_06ots9z" errorRef="Error_0mp7y57" camunda:errorMessageVariable="GenericErrorMessage" />
+      </bpmn:startEvent>
+      <bpmn:sequenceFlow id="Flow_14ugbum" sourceRef="Event_0785qb9" targetRef="Activity_0qdmr2d" />
+      <bpmn:exclusiveGateway id="Gateway_0olx27s">
+        <bpmn:incoming>Flow_1xxitk5</bpmn:incoming>
+        <bpmn:outgoing>Flow_1gxhjoy</bpmn:outgoing>
+        <bpmn:outgoing>Flow_040soi2</bpmn:outgoing>
+        <bpmn:outgoing>Flow_0hr1xvc</bpmn:outgoing>
+      </bpmn:exclusiveGateway>
+      <bpmn:sequenceFlow id="Flow_1xxitk5" sourceRef="Activity_0qdmr2d" targetRef="Gateway_0olx27s" />
+      <bpmn:endEvent id="Event_148t05l" name="Ended by &#34;Error B&#34;">
+        <bpmn:incoming>Flow_1gxhjoy</bpmn:incoming>
+      </bpmn:endEvent>
+      <bpmn:sequenceFlow id="Flow_1gxhjoy" sourceRef="Gateway_0olx27s" targetRef="Event_148t05l">
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">#{GenericErrorMessage== 'errorB'}</bpmn:conditionExpression>
+      </bpmn:sequenceFlow>
+      <bpmn:endEvent id="Event_0uhz9mt" name="Ended by &#34;Error C&#34;">
+        <bpmn:incoming>Flow_040soi2</bpmn:incoming>
+      </bpmn:endEvent>
+      <bpmn:sequenceFlow id="Flow_040soi2" sourceRef="Gateway_0olx27s" targetRef="Event_0uhz9mt">
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">#{GenericErrorMessage== 'errorC'}</bpmn:conditionExpression>
+      </bpmn:sequenceFlow>
+      <bpmn:endEvent id="Event_1n1llix" name="Ended by &#34;Error D&#34;">
+        <bpmn:incoming>Flow_0hr1xvc</bpmn:incoming>
+      </bpmn:endEvent>
+      <bpmn:sequenceFlow id="Flow_0hr1xvc" sourceRef="Gateway_0olx27s" targetRef="Event_1n1llix">
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">#{GenericErrorMessage== 'errorD'}</bpmn:conditionExpression>
+      </bpmn:sequenceFlow>
+      <bpmn:scriptTask id="Activity_0qdmr2d" name="Error Processing" camunda:asyncBefore="true" scriptFormat="JavaScript">
+        <bpmn:incoming>Flow_14ugbum</bpmn:incoming>
+        <bpmn:outgoing>Flow_1xxitk5</bpmn:outgoing>
+        <bpmn:script>print('Some real processing here');</bpmn:script>
+      </bpmn:scriptTask>
+      <bpmn:textAnnotation id="TextAnnotation_11k6wb9">
+        <bpmn:text>Check the sequence flow expressions to see how the errors are compared and separated</bpmn:text>
+      </bpmn:textAnnotation>
+      <bpmn:association id="Association_1mlwtxd" sourceRef="Activity_0qdmr2d" targetRef="TextAnnotation_11k6wb9" />
+    </bpmn:subProcess>
+    <bpmn:endEvent id="Event_0yuear1">
+      <bpmn:incoming>Flow_10qabg0</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:textAnnotation id="TextAnnotation_1e5cdfi">
+      <bpmn:text>Attached error event to handle "error A".</bpmn:text>
+    </bpmn:textAnnotation>
+    <bpmn:textAnnotation id="TextAnnotation_1ur92jt">
+      <bpmn:text>A Error is caught by a specific bounday error event. The other errors are handled by the event subprocess.</bpmn:text>
+    </bpmn:textAnnotation>
+    <bpmn:textAnnotation id="TextAnnotation_1w0m47l">
+      <bpmn:text>This is task is here to only show the variable passed and simulate we handle the error</bpmn:text>
+    </bpmn:textAnnotation>
+    <bpmn:association id="Association_0rsrpgb" sourceRef="Event_0nt8kb5" targetRef="TextAnnotation_1e5cdfi" />
+    <bpmn:association id="Association_0umu9a7" sourceRef="Activity_0a5lzj3" targetRef="TextAnnotation_1w0m47l" />
+    <bpmn:textAnnotation id="TextAnnotation_0xkq759">
+      <bpmn:text>This task throws many different errors,"Error A", "Error B", "Error C", "Error D".</bpmn:text>
+    </bpmn:textAnnotation>
+    <bpmn:association id="Association_08yq823" sourceRef="Activity_19cfg8i" targetRef="TextAnnotation_0xkq759" />
+    <bpmn:association id="Association_0rk3nxg" sourceRef="Activity_0aegd4k" targetRef="TextAnnotation_1ur92jt" />
+    <bpmn:textAnnotation id="TextAnnotation_1ajq4np">
+      <bpmn:text>In detail: Use a generic error code that you want the event subprocess to catch. Use the Error Message to hold the specific error information. So all errors throw the same error code which is caught by the BPMN error event, and the error message contains the specific information about the error being thrown.</bpmn:text>
+    </bpmn:textAnnotation>
+    <bpmn:association id="Association_0wmafx7" sourceRef="Activity_19cfg8i" targetRef="TextAnnotation_1ajq4np" />
+    <bpmn:textAnnotation id="TextAnnotation_0owk1vp">
+      <bpmn:text>We can use as well another errors that do not throw the generic error, example is the errorA, that is handled by a specific attached event. Check the script to see how it works in detail.</bpmn:text>
+    </bpmn:textAnnotation>
+    <bpmn:association id="Association_10a3uq5" sourceRef="Activity_19cfg8i" targetRef="TextAnnotation_0owk1vp" />
+  </bpmn:process>
+  <bpmn:error id="Error_0mp7y57" name="Error_03envad" errorCode="GenericError" />
+  <bpmn:error id="Error_0k619mt" name="Error_1gs65hj" errorCode="errorA" />
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Collaboration_1nw7p3r">
+      <bpmndi:BPMNShape id="Participant_0sdwsfl_di" bpmnElement="demo_ErrorCatchingStrategy_ManyErrorsOneTask_Scripting" isHorizontal="true">
+        <dc:Bounds x="129" y="80" width="941" height="840" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_1g635ph_di" bpmnElement="Flow_1g635ph">
+        <di:waypoint x="630" y="282" />
+        <di:waypoint x="630" y="230" />
+        <di:waypoint x="530" y="230" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1d1qml5_di" bpmnElement="Flow_1d1qml5">
+        <di:waypoint x="390" y="340" />
+        <di:waypoint x="580" y="340" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0up75e9_di" bpmnElement="Flow_0up75e9">
+        <di:waypoint x="430" y="230" />
+        <di:waypoint x="340" y="230" />
+        <di:waypoint x="340" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_10qabg0_di" bpmnElement="Flow_10qabg0">
+        <di:waypoint x="680" y="340" />
+        <di:waypoint x="872" y="340" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_02v8rcw_di" bpmnElement="Flow_02v8rcw">
+        <di:waypoint x="228" y="340" />
+        <di:waypoint x="290" y="340" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Activity_102uzyq_di" bpmnElement="Activity_19cfg8i">
+        <dc:Bounds x="580" y="300" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1c65ws0_di" bpmnElement="Activity_0a5lzj3">
+        <dc:Bounds x="430" y="190" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1mmt0fn_di" bpmnElement="Activity_02b9yl7">
+        <dc:Bounds x="290" y="300" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="StartEvent_1">
+        <dc:Bounds x="192" y="322" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0y6s2sl_di" bpmnElement="Activity_0aegd4k" isExpanded="true">
+        <dc:Bounds x="201" y="570" width="541" height="330" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_0hr1xvc_di" bpmnElement="Flow_0hr1xvc">
+        <di:waypoint x="514" y="776" />
+        <di:waypoint x="514" y="811" />
+        <di:waypoint x="596" y="811" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_040soi2_di" bpmnElement="Flow_040soi2">
+        <di:waypoint x="539" y="751" />
+        <di:waypoint x="596" y="751" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1gxhjoy_di" bpmnElement="Flow_1gxhjoy">
+        <di:waypoint x="514" y="726" />
+        <di:waypoint x="514" y="690" />
+        <di:waypoint x="596" y="690" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1xxitk5_di" bpmnElement="Flow_1xxitk5">
+        <di:waypoint x="434" y="751" />
+        <di:waypoint x="489" y="751" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_14ugbum_di" bpmnElement="Flow_14ugbum">
+        <di:waypoint x="280" y="751" />
+        <di:waypoint x="334" y="751" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Event_0hy7zty_di" bpmnElement="Event_0785qb9">
+        <dc:Bounds x="244" y="733" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="228" y="776" width="68" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_0olx27s_di" bpmnElement="Gateway_0olx27s" isMarkerVisible="true">
+        <dc:Bounds x="489" y="726" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_148t05l_di" bpmnElement="Event_148t05l">
+        <dc:Bounds x="596" y="672" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="650" y="686" width="80" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0uhz9mt_di" bpmnElement="Event_0uhz9mt">
+        <dc:Bounds x="596" y="733" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="650" y="746" width="80" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1n1llix_di" bpmnElement="Event_1n1llix">
+        <dc:Bounds x="596" y="793" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="650" y="806" width="80" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1etj2is_di" bpmnElement="Activity_0qdmr2d">
+        <dc:Bounds x="334" y="711" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="TextAnnotation_11k6wb9_di" bpmnElement="TextAnnotation_11k6wb9">
+        <dc:Bounds x="334" y="590" width="139.989837398374" height="81.30081300813008" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Association_1mlwtxd_di" bpmnElement="Association_1mlwtxd">
+        <di:waypoint x="384" y="711" />
+        <di:waypoint x="384" y="671" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Event_0yuear1_di" bpmnElement="Event_0yuear1">
+        <dc:Bounds x="872" y="322" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="TextAnnotation_1e5cdfi_di" bpmnElement="TextAnnotation_1e5cdfi">
+        <dc:Bounds x="620" y="160" width="140" height="41" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="TextAnnotation_1ur92jt_di" bpmnElement="TextAnnotation_1ur92jt">
+        <dc:Bounds x="201" y="490" width="219" height="60" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="TextAnnotation_1w0m47l_di" bpmnElement="TextAnnotation_1w0m47l">
+        <dc:Bounds x="330" y="120" width="250" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="TextAnnotation_0xkq759_di" bpmnElement="TextAnnotation_0xkq759">
+        <dc:Bounds x="490" y="400" width="120" height="90" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="TextAnnotation_1ajq4np_di" bpmnElement="TextAnnotation_1ajq4np">
+        <dc:Bounds x="610" y="440" width="270" height="110" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="TextAnnotation_0owk1vp_di" bpmnElement="TextAnnotation_0owk1vp">
+        <dc:Bounds x="910" y="440" width="100" height="208" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1ih6ohc_di" bpmnElement="Event_0nt8kb5">
+        <dc:Bounds x="612" y="282" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="656" y="276" width="87" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Association_0rsrpgb_di" bpmnElement="Association_0rsrpgb">
+        <di:waypoint x="635" y="283" />
+        <di:waypoint x="662" y="201" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Association_0umu9a7_di" bpmnElement="Association_0umu9a7">
+        <di:waypoint x="438" y="190" />
+        <di:waypoint x="417" y="170" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Association_08yq823_di" bpmnElement="Association_08yq823">
+        <di:waypoint x="584" y="378" />
+        <di:waypoint x="558" y="400" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Association_0rk3nxg_di" bpmnElement="Association_0rk3nxg">
+        <di:waypoint x="308" y="570" />
+        <di:waypoint x="292" y="550" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Association_0wmafx7_di" bpmnElement="Association_0wmafx7">
+        <di:waypoint x="643" y="380" />
+        <di:waypoint x="664" y="440" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Association_10a3uq5_di" bpmnElement="Association_10a3uq5">
+        <di:waypoint x="680" y="357" />
+        <di:waypoint x="917" y="440" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
